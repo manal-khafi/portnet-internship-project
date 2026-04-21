@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: manal
+      POSTGRES_PASSWORD: portnet123
+      POSTGRES_DB: portnet_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "postgresql://manal:portnet123@db:5432/portnet_db?schema=public"
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
