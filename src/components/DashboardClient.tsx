@@ -42,8 +42,14 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
     vessels.find(v => v.id === selectedVesselId), 
   [vessels, selectedVesselId]);
 
-  const handleLogout = useCallback(() => {
-    router.push('/login');
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      router.push('/login');
+    }
   }, [router]);
 
   const handleGoToDetails = useCallback((id: string) => {
