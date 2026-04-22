@@ -36,21 +36,21 @@ enum EtapeStatus {
 // --- MODELS ---
 
 model User {
-  id                Int                @id @default(autoincrement())
+  id                String             @id @default(uuid())
   nom               String
   email             String             @unique
   role              UserRole
   codeAgence        String?
   // Relations
   portSelectionne   Port?              @relation(fields: [portId], references: [id])
-  portId            Int?
+  portId            String?
   agence            Agence?            @relation(fields: [agenceId], references: [id])
-  agenceId          Int?
+  agenceId          String?
   statistiques      StatistiquesFlotte[]
 }
 
 model Port {
-  id                Int                @id @default(autoincrement())
+  id                String             @id @default(uuid())
   idPort            String             @unique
   nom               String
   // Relations
@@ -61,7 +61,7 @@ model Port {
 }
 
 model Agence {
-  id                Int                @id @default(autoincrement())
+  id                String             @id @default(uuid())
   codeAgence        String             @unique
   nomEntreprise     String
   // Relations
@@ -70,7 +70,7 @@ model Agence {
 }
 
 model Meteo {
-  id                Int      @id @default(autoincrement())
+  id                String   @id @default(uuid())
   meteo             Float
   temperature       Float
   vitesseVent       Float
@@ -79,11 +79,11 @@ model Meteo {
   maree             String
   dateHeure         DateTime
   port              Port     @relation(fields: [portId], references: [id])
-  portId            Int      @unique
+  portId            String   @unique
 }
 
 model Bathymetrie {
-  id                Int      @id @default(autoincrement())
+  id                String   @id @default(uuid())
   profondeurMax     Float
   profondeurMin     Float
   tirantEauAutorise Float
@@ -91,11 +91,11 @@ model Bathymetrie {
   postesDisponibles Int
   capacite          Int
   port              Port     @relation(fields: [portId], references: [id])
-  portId            Int      @unique
+  portId            String   @unique
 }
 
 model Escale {
-  id                Int                @id @default(autoincrement())
+  id                String             @id @default(uuid())
   numeroEscale      Int                @unique
   idPort            String
   eta               DateTime
@@ -110,15 +110,15 @@ model Escale {
 
   // Relations
   port              Port               @relation(fields: [portId], references: [id])
-  portId            Int
+  portId            String
   agence            Agence?            @relation(fields: [agenceId], references: [id])
-  agenceId          Int?
+  agenceId          String?
   navire            Navire             @relation(fields: [navireId], references: [id])
-  navireId          Int
+  navireId          String
 }
 
 model Navire {
-  id             Int      @id @default(autoincrement())
+  id             String   @id @default(uuid())
   nom            String
   type           String
   longueur       Float
@@ -128,11 +128,11 @@ model Navire {
 }
 
 model StatistiquesFlotte {
-  id                    Int    @id @default(autoincrement())
+  id                    String @id @default(uuid())
   nbEnRade              Int
   nbAuPort              Int
   nbAQuai               Int
   totalSousGestion      Int
   user                  User   @relation(fields: [userId], references: [id])
-  userId                Int
+  userId                String
 }
