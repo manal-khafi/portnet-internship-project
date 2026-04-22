@@ -39,6 +39,7 @@ model User {
   id                String             @id @default(uuid())
   nom               String
   email             String             @unique
+  password          String
   role              UserRole
   codeAgence        String?
   // Relations

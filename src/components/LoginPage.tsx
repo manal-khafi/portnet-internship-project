@@ -13,20 +13,35 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Simulate auth
-    setTimeout(() => {
-      if (email && password) {
-        onLogin();
-      } else {
-        setError('Identifiants invalides. Veuillez réessayer.');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Une erreur est survenue lors de la connexion.');
         setIsLoading(false);
+        return;
       }
-    }, 1200);
+
+      // Success
+      onLogin();
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Erreur de connexion au serveur. Veuillez réessayer.');
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -116,12 +131,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
                 <div className="absolute inset-0 bg-gradient-to-r from-[#C9A961] to-[#D4B97A] opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
               </button>
             </form>
-
-            <div className="mt-6 text-center">
-              <button className="text-sm text-[#332A7C] hover:text-[#C9A961] transition-colors">
-                Mot de passe oublié?
-              </button>
-            </div>
           </div>
 
           <p className="text-center text-gray-400 text-sm mt-8">
