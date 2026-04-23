@@ -10,6 +10,13 @@ interface VesselDetails {
   escaleNumber: string | number;
   portName: string;
   eta: string | Date;
+  lifecycle: {
+    avisArrivee: 'NOT_DONE' | 'DOING' | 'DONE';
+    dap: 'NOT_DONE' | 'DOING' | 'DONE';
+    activites: 'NOT_DONE' | 'DOING' | 'DONE';
+    manifeste: 'NOT_DONE' | 'DOING' | 'DONE';
+    bad: 'NOT_DONE' | 'DOING' | 'DONE';
+  };
 }
 
 interface VesselDetailProps {
@@ -19,17 +26,8 @@ interface VesselDetailProps {
 interface WorkflowStep {
   id: string;
   label: string;
-  status: 'completed' | 'in-progress' | 'pending';
-  timestamp?: string;
+  status: 'completed' | 'current' | 'pending';
 }
-
-const workflowSteps: WorkflowStep[] = [
-  { id: 'avis', label: 'Avis Arrivée', status: 'completed', timestamp: '15 Avr, 09:00' },
-  { id: 'dap', label: 'DAP', status: 'completed', timestamp: '15 Avr, 14:30' },
-  { id: 'activities', label: 'Activités', status: 'in-progress', timestamp: '17 Avr, 08:00' },
-  { id: 'manifest', label: 'Manifeste', status: 'pending' },
-  { id: 'bad', label: 'BAD', status: 'pending' },
-];
 
 const vesselSpecs = [
   { label: 'Type', value: 'PORTE-CONTENEURS' },
@@ -46,6 +44,20 @@ export function VesselDetail({ data }: VesselDetailProps) {
     const role = pathname.startsWith('/admin') ? 'admin' : 'agent';
     router.push(`/${role}/dashboard`);
   };
+
+  const mapStatus = (dbStatus: string): 'completed' | 'current' | 'pending' => {
+    if (dbStatus === 'DONE') return 'completed';
+    if (dbStatus === 'DOING') return 'current';
+    return 'pending';
+  };
+
+  const workflowSteps: WorkflowStep[] = [
+    { id: 'avis', label: 'Avis Arrivée', status: mapStatus(data.lifecycle.avisArrivee) },
+    { id: 'dap', label: 'DAP', status: mapStatus(data.lifecycle.dap) },
+    { id: 'activities', label: 'Activités', status: mapStatus(data.lifecycle.activites) },
+    { id: 'manifest', label: 'Manifeste', status: mapStatus(data.lifecycle.manifeste) },
+    { id: 'bad', label: 'BAD', status: mapStatus(data.lifecycle.bad) },
+  ];
 
   const getStatusStyles = (status: string) => {
     switch (status.toUpperCase()) {
@@ -72,7 +84,7 @@ export function VesselDetail({ data }: VesselDetailProps) {
     switch (status) {
       case 'completed':
         return <CheckCircle2 className="w-6 h-6 text-white" strokeWidth={2} />;
-      case 'in-progress':
+      case 'current':
         return <Clock className="w-6 h-6 text-white" strokeWidth={2} />;
       default:
         return <Circle className="w-6 h-6 text-white" strokeWidth={2} />;
@@ -83,7 +95,7 @@ export function VesselDetail({ data }: VesselDetailProps) {
     switch (status) {
       case 'completed':
         return '#10B981';
-      case 'in-progress':
+      case 'current':
         return '#F59E0B';
       default:
         return '#9CA3AF';
@@ -139,13 +151,23 @@ export function VesselDetail({ data }: VesselDetailProps) {
             Cycle de Vie
           </h3>
 
-          <div className="relative">
-            {/* Progress line */}
-            <div className="absolute top-8 left-0 right-0 h-1 bg-gray-200" style={{ zIndex: 0 }}>
-              <div
-                className="h-full bg-gradient-to-r from-[#10B981] to-[#F59E0B] transition-all duration-1000"
-                style={{ width: '50%' }}
-              ></div>
+          <div className="relative pt-4 pb-4">
+            {/* Progress line segments */}
+            <div className="absolute top-[52px] left-[10%] right-[10%] h-1 flex z-0">
+              {workflowSteps.slice(0, -1).map((_, i) => {
+                const nextStep = workflowSteps[i + 1];
+                let lineColor = '#E5E7EB'; // Default gray
+                if (nextStep.status === 'completed') lineColor = '#10B981'; // Green
+                else if (nextStep.status === 'current') lineColor = '#F59E0B'; // Orange
+
+                return (
+                  <div 
+                    key={i} 
+                    className="flex-1 h-full transition-colors duration-500"
+                    style={{ backgroundColor: lineColor }}
+                  />
+                );
+              })}
             </div>
 
             {/* Steps */}
@@ -156,22 +178,14 @@ export function VesselDetail({ data }: VesselDetailProps) {
                     className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg mb-3 transition-all duration-300 hover:scale-110"
                     style={{
                       backgroundColor: getStepColor(step.status),
-                      animation: step.status === 'in-progress' ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none'
+                      animation: step.status === 'current' ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none'
                     }}
                   >
                     {getStepIcon(step.status)}
                   </div>
-                  <p className="text-center mb-1" style={{ fontFamily: 'var(--font-display)', color: getStepColor(step.status) }}>
+                  <p className="text-center mb-1 font-medium" style={{ fontFamily: 'var(--font-display)', color: getStepColor(step.status) }}>
                     {step.label}
                   </p>
-                  {step.timestamp && (
-                    <p className="text-xs text-gray-500 text-center">{step.timestamp}</p>
-                  )}
-                  {step.status === 'in-progress' && (
-                    <div className="mt-2 px-3 py-1 bg-[#F59E0B]/10 rounded-lg border border-[#F59E0B]/30">
-                      <p className="text-xs text-[#F59E0B]" style={{ fontFamily: 'var(--font-display)' }}>En Cours</p>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
