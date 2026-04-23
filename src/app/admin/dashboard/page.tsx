@@ -36,14 +36,23 @@ async function getDashboardData() {
     { label: 'Total Général', value: '6', color: '#332A7C' },
   ];
 
-  const vessels = [
-    { id: '1', name: 'SOUK EXPRESS', status: 'at-quay', x: 65, y: 30 },
-    { id: '2', name: 'MEDITERRANEAN STAR', status: 'at-quay', x: 65, y: 50 },
-    { id: '3', name: 'ATLAS VOYAGER', status: 'at-quay', x: 65, y: 70 },
-    { id: '4', name: 'CASABLANCA QUEEN', status: 'at-port', x: 45, y: 50 },
-    { id: '5', name: 'SAHARA TRADER', status: 'in-roads', x: 20, y: 35 },
-    { id: '6', name: 'MOROCCO PRIDE', status: 'in-roads', x: 25, y: 60 },
-  ];
+  const escales = await prisma.escale.findMany({
+    include: {
+      navire: true,
+    },
+  });
+
+  const vessels = escales.map((escale) => ({
+    id: escale.navire.id,
+    name: escale.navire.nom,
+    portId: escale.portId,
+    status: 
+      escale.statut === "RADE" ? "in-roads" : 
+      escale.statut === "AU_PORT" ? "at-port" : 
+      "at-quay",
+    x: Math.random() * 80,
+    y: Math.random() * 80,
+  }));
 
 
   const bathymetry = await prisma.bathymetrie.findMany({

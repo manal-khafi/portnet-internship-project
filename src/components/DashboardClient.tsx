@@ -19,7 +19,7 @@ interface Vessel {
 
 interface DashboardClientProps {
   ports: { id: string; name: string }[];
-  vessels: Vessel[];
+  vessels: any[]; // Changed to any to accommodate portId during filtering
   initialWeather: Record<string, any[]>;
   initialBathymetry: any;
   stats: any[];
@@ -41,11 +41,16 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
 
   const handlePortChange = useCallback((id: string) => {
     setSelectedPort(id);
+    setSelectedVesselId(null); // Reset selection when port changes
   }, []);
 
+  const filteredVessels = useMemo(() => {
+    return vessels.filter((v: any) => v.portId === selectedPort);
+  }, [vessels, selectedPort]);
+
   const selectedVessel = useMemo(() =>
-    vessels.find(v => v.id === selectedVesselId),
-    [vessels, selectedVesselId]);
+    filteredVessels.find(v => v.id === selectedVesselId),
+    [filteredVessels, selectedVesselId]);
 
   const selectedWeather = useMemo(() => {
     return initialWeather[selectedPort] || [
@@ -139,7 +144,7 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <VesselMap
-              vessels={vessels}
+              vessels={filteredVessels}
               selectedVesselId={selectedVesselId}
               onVesselClick={handleVesselClick}
             />
