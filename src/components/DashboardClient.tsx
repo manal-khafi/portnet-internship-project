@@ -23,10 +23,12 @@ interface DashboardClientProps {
   initialWeather: any;
   initialBathymetry: any;
   stats: any[];
-} 
+}
 
 export function DashboardClient({ ports, vessels, initialWeather, initialBathymetry, stats }: DashboardClientProps) {
-  const [selectedPort, setSelectedPort] = useState(ports[0].id);
+  const [selectedPort, setSelectedPort] = useState(
+    ports.length > 0 ? ports[0].id : ""
+  );
   const [selectedVesselId, setSelectedVesselId] = useState<string | null>(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -41,9 +43,9 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
     setSelectedPort(id);
   }, []);
 
-  const selectedVessel = useMemo(() => 
-    vessels.find(v => v.id === selectedVesselId), 
-  [vessels, selectedVesselId]);
+  const selectedVessel = useMemo(() =>
+    vessels.find(v => v.id === selectedVesselId),
+    [vessels, selectedVesselId]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -71,10 +73,10 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
       />
 
       <div className="max-w-[1600px] mx-auto px-6 py-8">
-        <PortSelector 
-          ports={ports} 
-          selectedPort={selectedPort} 
-          onPortChange={handlePortChange} 
+        <PortSelector
+          ports={ports}
+          selectedPort={selectedPort}
+          onPortChange={handlePortChange}
         />
 
         {/* Weather & Bathymetry Cards */}
@@ -108,17 +110,17 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <VesselMap 
-              vessels={vessels} 
-              selectedVesselId={selectedVesselId} 
-              onVesselClick={handleVesselClick} 
+            <VesselMap
+              vessels={vessels}
+              selectedVesselId={selectedVesselId}
+              onVesselClick={handleVesselClick}
             />
           </div>
 
           <div className="lg:col-span-1">
-            <VesselSidebar 
-              selectedVessel={selectedVessel} 
-              onGoToDetails={handleGoToDetails} 
+            <VesselSidebar
+              selectedVessel={selectedVessel}
+              onGoToDetails={handleGoToDetails}
             />
           </div>
         </div>

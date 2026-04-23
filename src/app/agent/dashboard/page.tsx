@@ -1,12 +1,18 @@
+import { prisma } from "@/lib/prisma";
 import { DashboardClient } from "@/components/DashboardClient";
 
-// In a real app, this would fetch from Prisma
+
 async function getDashboardData() {
-  const ports = [
-    { id: 'casablanca', name: 'Port of Casablanca' },
-    { id: 'tangier', name: 'Port of Tangier Med' },
-    { id: 'agadir', name: 'Port of Agadir' },
-  ];
+  const ports = await prisma.port.findMany({
+    select: {
+      id: true,
+      idPort: true,
+      nom: true,
+    },
+    orderBy: {
+      nom: "asc",
+    },
+  });
 
   const vessels = [
     { id: '1', name: 'SOUK EXPRESS', status: 'at-quay', x: 65, y: 30 },
@@ -42,7 +48,13 @@ async function getDashboardData() {
     { label: 'Total Général', value: '6', color: '#332A7C' },
   ];
 
-  return { ports, vessels, weather, bathymetry, stats };
+  return { 
+    ports: ports.map(p => ({ id: p.id, name: p.nom })),
+    vessels, 
+    weather, 
+    bathymetry, 
+    stats 
+  };
 }
 
 export default async function DashboardPage() {
