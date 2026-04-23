@@ -55,22 +55,6 @@ export const VesselMap = React.memo(({ vessels, selectedVesselId, onVesselClick 
           <div className="text-center pt-6">
             <p className="text-lg text-gray-700" style={{ fontFamily: 'var(--font-display)' }}>ZONE QUAIS</p>
           </div>
-          <div className="absolute right-8 top-[20%] space-y-6">
-            {[1, 2, 3, 4, 5, 6].map(berth => (
-              <div key={berth} className="w-20 h-14 bg-white/60 border-2 border-gray-400 rounded-lg flex items-center justify-center shadow-sm">
-                <span className="text-sm text-gray-700" style={{ fontFamily: 'var(--font-display)' }}>Quai {berth}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Open Water Zones */}
-        <div className="absolute left-[8%] top-[20%] w-[20%] h-[30%] rounded-2xl bg-portnet-red/10 border-2 border-dashed border-portnet-red/40 flex items-center justify-center backdrop-blur-sm">
-          <p className="text-sm text-portnet-red" style={{ fontFamily: 'var(--font-display)' }}>EN RADE</p>
-        </div>
-
-        <div className="absolute left-[35%] top-[35%] w-[25%] h-[30%] rounded-2xl bg-portnet-orange/10 border-2 border-dashed border-portnet-orange/40 flex items-center justify-center backdrop-blur-sm">
-          <p className="text-sm text-portnet-orange" style={{ fontFamily: 'var(--font-display)' }}>AU PORT</p>
         </div>
 
         {/* Vessels */}
@@ -87,7 +71,7 @@ export const VesselMap = React.memo(({ vessels, selectedVesselId, onVesselClick 
             zoneY = 50;
           } else if (vessel.status === 'at-quay') {
             const index = vessels.filter(v => v.status === 'at-quay').findIndex(v => v.id === vessel.id);
-            zoneX = 78;
+            zoneX = 85;
             zoneY = 25 + (index * 18);
           }
 
