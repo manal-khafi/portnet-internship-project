@@ -4,8 +4,16 @@ import { CheckCircle2, Clock, Circle } from 'lucide-react';
 import { Header } from './Header';
 import { usePathname, useRouter } from 'next/navigation';
 
+interface VesselDetails {
+  name: string;
+  status: string;
+  escaleNumber: string | number;
+  portName: string;
+  eta: string | Date;
+}
+
 interface VesselDetailProps {
-  vesselName: string;
+  data: VesselDetails;
 }
 
 interface WorkflowStep {
@@ -30,7 +38,7 @@ const vesselSpecs = [
   { label: 'Consignataire', value: 'M. MARITIME SERVICES' },
 ];
 
-export function VesselDetail({ vesselName }: VesselDetailProps) {
+export function VesselDetail({ data }: VesselDetailProps) {
   const router = useRouter();
   const pathname = usePathname();
 
@@ -38,6 +46,27 @@ export function VesselDetail({ vesselName }: VesselDetailProps) {
     const role = pathname.startsWith('/admin') ? 'admin' : 'agent';
     router.push(`/${role}/dashboard`);
   };
+
+  const getStatusStyles = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'CONFIRMÉ':
+        return 'bg-[#10B981]/10 border-[#10B981]/30 text-[#10B981]';
+      case 'EN ATTENTE':
+        return 'bg-[#F59E0B]/10 border-[#F59E0B]/30 text-[#F59E0B]';
+      case 'ANNULÉ':
+        return 'bg-[#EF4444]/10 border-[#EF4444]/30 text-[#EF4444]';
+      default:
+        return 'bg-gray-100 border-gray-200 text-gray-500';
+    }
+  };
+
+  const formattedEta = new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(data.eta)).replace(',', '');
 
   const getStepIcon = (status: string) => {
     switch (status) {
@@ -79,25 +108,25 @@ export function VesselDetail({ vesselName }: VesselDetailProps) {
             <div className="flex-1">
               <div className="flex items-center gap-4 mb-6">
                 <h2 className="text-4xl text-[#332A7C]" style={{ fontFamily: 'var(--font-display)' }}>
-                  {vesselName}
+                  {data.name}
                 </h2>
-                <div className="flex items-center gap-2 px-4 py-2 bg-[#10B981]/10 rounded-xl border-2 border-[#10B981]/30">
-                  <div className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse"></div>
-                  <span className="text-[#10B981] text-sm" style={{ fontFamily: 'var(--font-display)' }}>CONFIRMÉ</span>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-xl border-2 ${getStatusStyles(data.status)}`}>
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${data.status.toUpperCase() === 'CONFIRMÉ' ? 'bg-[#10B981]' : data.status.toUpperCase() === 'EN ATTENTE' ? 'bg-[#F59E0B]' : 'bg-[#EF4444]'}`}></div>
+                  <span className="text-sm font-semibold uppercase" style={{ fontFamily: 'var(--font-display)' }}>{data.status}</span>
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-8">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Escale</p>
-                  <p className="text-xl text-[#1A1A2E]" style={{ fontFamily: 'var(--font-display)' }}>52310</p>
+                  <p className="text-xl text-[#1A1A2E]" style={{ fontFamily: 'var(--font-display)' }}>{data.escaleNumber}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">Port</p>
-                  <p className="text-xl text-[#1A1A2E]" style={{ fontFamily: 'var(--font-display)' }}>AGADIR</p>
+                  <p className="text-xl text-[#1A1A2E]" style={{ fontFamily: 'var(--font-display)' }}>{data.portName}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 mb-1">ETA</p>
-                  <p className="text-xl text-[#1A1A2E]" style={{ fontFamily: 'var(--font-display)' }}>18.04.2026 10:00</p>
+                  <p className="text-xl text-[#1A1A2E]" style={{ fontFamily: 'var(--font-display)' }}>{formattedEta}</p>
                 </div>
               </div>
             </div>

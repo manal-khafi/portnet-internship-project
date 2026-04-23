@@ -14,21 +14,31 @@ async function getDashboardData() {
 
   for (const port of portsFromDb) {
     if (port.lat && port.lon) {
-      try {
-        weatherMap[port.id] = await fetchWeather(port.lat, port.lon);
-      } catch (error) {
-        console.error(`Failed to fetch weather for ${port.nom}:`, error);
-        weatherMap[port.id] = [
-          { label: 'Météo', value: 'Indisponible' },
-          { label: 'Température', value: '--°C' },
-          { label: 'Vent', value: '-- km/h' },
-          { label: 'Houle', value: '-- m' },
-          { label: 'Visibilité', value: '-- km' },
-          { label: 'Humidité', value: '--%' }
-        ];
-      }
+      const weatherData = await fetchWeather(port.lat, port.lon);
+      weatherMap[port.id] = weatherData || [
+        { label: 'Météo', value: 'Service Indisponible' },
+        { label: 'Température', value: '--°C' },
+        { label: 'Vent', value: '-- km/h' },
+        { label: 'Houle', value: '-- m' },
+        { label: 'Visibilité', value: '-- km' },
+        { label: 'Humidité', value: '--%' }
+      ];
     }
   }
+
+  const bathymetry = await prisma.bathymetrie.findMany({
+    select: {
+      id: true,
+      portId: true,
+      profondeurMax: true,
+      profondeurMin: true,
+      tirantEauAutorise: true,
+      longueurQuai: true,
+      postesDisponibles: true,
+      capacite: true,
+    },
+  });
+
 
   const escales = await prisma.escale.findMany({
     include: {
