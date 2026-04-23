@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Ship, Lock, User } from 'lucide-react';
 
 interface LoginPageProps {
-  onLogin: () => void;
+  onLogin: (role: string) => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
@@ -36,7 +36,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       }
 
       // Success
-      onLogin();
+      onLogin(data.user.role);
     } catch (err) {
       console.error('Login error:', err);
       setError('Erreur de connexion au serveur. Veuillez réessayer.');

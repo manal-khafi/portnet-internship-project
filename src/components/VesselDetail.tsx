@@ -2,7 +2,7 @@
 
 import { CheckCircle2, Clock, Circle } from 'lucide-react';
 import { Header } from './Header';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 interface VesselDetailProps {
   vesselName: string;
@@ -32,9 +32,11 @@ const vesselSpecs = [
 
 export function VesselDetail({ vesselName }: VesselDetailProps) {
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleBack = () => {
-    router.push('/dashboard');
+    const role = pathname.startsWith('/admin') ? 'admin' : 'agent';
+    router.push(`/${role}/dashboard`);
   };
 
   const getStepIcon = (status: string) => {

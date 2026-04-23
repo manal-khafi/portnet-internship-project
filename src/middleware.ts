@@ -5,63 +5,52 @@ import { jwtVerify } from "jose";
 const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 export async function middleware(request: NextRequest) {
-  const accessToken = request.cookies.get("access_token")?.value;
-  const refreshToken = request.cookies.get("refresh_token")?.value;
+  const token = request.cookies.get("access_token")?.value;
   const { pathname } = request.nextUrl;
 
-  let user = null;
+  let user: any = null;
 
-  // 1. Validate Access Token
-  if (accessToken) {
+  // 1. Verify access token ONLY
+  if (token) {
     try {
-      const { payload } = await jwtVerify(accessToken, secret);
+      const { payload } = await jwtVerify(token, secret);
       user = payload;
-    } catch (e) {
+    } catch {
       user = null;
     }
   }
 
-  const protectedRoutes = ["/dashboard", "/admin", "/agent", "/vessel"];
-  const isProtected = protectedRoutes.some((route) => pathname.startsWith(route));
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isAgentRoute = pathname.startsWith("/agent");
+  const isProtected = isAdminRoute || isAgentRoute;
 
-  // 2. Logic for protected routes
-  if (isProtected) {
-    // If we have a valid access token, check roles
-    if (user) {
-      if (pathname.startsWith("/admin") && user.role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-      if (pathname.startsWith("/agent") && user.role !== "AGENT" && user.role !== "ADMIN") {
-        return NextResponse.redirect(new URL("/dashboard", request.url));
-      }
-      return NextResponse.next();
-    }
-
-    // If access token is missing or expired, check refresh token
-    if (refreshToken) {
-      try {
-        // Validate refresh token to see if session is still alive
-        await jwtVerify(refreshToken, secret);
-        // Valid refresh token exists -> Allow access so frontend can call /api/auth/refresh
-        return NextResponse.next();
-      } catch (e) {
-        // Refresh token invalid -> redirect to login
-        return NextResponse.redirect(new URL("/login", request.url));
-      }
-    }
-
-    // Both missing -> redirect to login
+  // 2. Block if not logged in
+  if (isProtected && !user) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // 3. Block /login if already authenticated with access token
+  // 3. Role checks
+  if (isAdminRoute && user?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/agent/dashboard", request.url));
+  }
+
+  if (isAgentRoute && user?.role !== "AGENT" && user?.role !== "ADMIN") {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
+
+  // 4. Prevent login page if already logged in
   if (pathname === "/login" && user) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const target =
+      user.role === "ADMIN"
+        ? "/admin/dashboard"
+        : "/agent/dashboard";
+
+    return NextResponse.redirect(new URL(target, request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/agent/:path*", "/vessel/:path*", "/login"],
+  matcher: ["/admin/:path*", "/agent/:path*", "/login"],
 };

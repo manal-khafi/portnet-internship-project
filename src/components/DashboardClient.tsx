@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { Cloud, Waves } from 'lucide-react';
 import { Header } from './Header';
 import { StatsCard } from './StatsCard';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { PortSelector } from './dashboard/PortSelector';
 import { VesselMap } from './dashboard/VesselMap';
 import { VesselSidebar } from './dashboard/VesselSidebar';
@@ -23,12 +23,15 @@ interface DashboardClientProps {
   initialWeather: any;
   initialBathymetry: any;
   stats: any[];
-}
+} 
 
 export function DashboardClient({ ports, vessels, initialWeather, initialBathymetry, stats }: DashboardClientProps) {
   const [selectedPort, setSelectedPort] = useState(ports[0].id);
   const [selectedVesselId, setSelectedVesselId] = useState<string | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+
+  const role = pathname.startsWith('/admin') ? 'admin' : 'agent';
 
   const handleVesselClick = useCallback((vessel: Vessel) => {
     setSelectedVesselId(vessel.id);
@@ -53,8 +56,9 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
   }, [router]);
 
   const handleGoToDetails = useCallback((id: string) => {
-    router.push(`/vessel/${id}`);
-  }, [router]);
+    router.push(`/${role}/vessels/${id}`);
+  }, [router, role]);
+
 
   return (
     <div className="min-h-screen bg-gray-50">
