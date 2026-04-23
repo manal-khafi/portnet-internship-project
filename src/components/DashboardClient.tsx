@@ -20,7 +20,7 @@ interface Vessel {
 interface DashboardClientProps {
   ports: { id: string; name: string }[];
   vessels: Vessel[];
-  initialWeather: any;
+  initialWeather: Record<string, any[]>;
   initialBathymetry: any;
   stats: any[];
 }
@@ -46,6 +46,34 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
   const selectedVessel = useMemo(() =>
     vessels.find(v => v.id === selectedVesselId),
     [vessels, selectedVesselId]);
+
+  const selectedWeather = useMemo(() => {
+    return initialWeather[selectedPort] || [
+      { label: 'Météo', value: 'Chargement...' },
+      { label: 'Température', value: '--°C' },
+      { label: 'Vent', value: '-- km/h' },
+      { label: 'Houle', value: '0.4 m' },
+      { label: 'Visibilité', value: '-- km' },
+      { label: 'Humidité', value: '--%' }
+    ];
+  }, [selectedPort, initialWeather]);
+
+  const selectedBathymetry = useMemo(() => {
+    const data = Array.isArray(initialBathymetry) 
+      ? initialBathymetry.find((b: any) => b.portId === selectedPort)
+      : null;
+
+    if (!data) return [];
+
+    return [
+      { label: 'Profondeur Max', value: `${data.profondeurMax} m` },
+      { label: 'Profondeur Min', value: `${data.profondeurMin} m` },
+      { label: 'Tirant d\'eau Max', value: `${data.tirantEauAutorise} m` },
+      { label: 'Longueur Quai', value: `${data.longueurQuai} m` },
+      { label: 'Postes Disponibles', value: `${data.postesDisponibles} postes` },
+      { label: 'Capacité', value: `${data.capacite} navires` }
+    ];
+  }, [selectedPort, initialBathymetry]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -85,7 +113,7 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
             title="Météo Actuelle"
             icon={<Cloud className="w-7 h-7 text-white" strokeWidth={1.5} />}
             badge="EN DIRECT"
-            data={initialWeather}
+            data={selectedWeather}
           />
 
           <div className="bg-white rounded-3xl p-6 shadow-md border-2 border-gray-100 hover:border-portnet-purple/20 transition-all duration-300">
@@ -97,7 +125,7 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
             </div>
             <h3 className="text-lg mb-4 text-portnet-purple" style={{ fontFamily: 'var(--font-display)' }}>Bathymétrie</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
-              {initialBathymetry.map((item: any, idx: number) => (
+              {selectedBathymetry.map((item: any, idx: number) => (
                 <div key={idx}>
                   <p className="text-xs text-gray-500 mb-1">{item.label}</p>
                   <p className="text-base text-portnet-navy" style={{ fontFamily: 'var(--font-display)' }}>{item.value}</p>

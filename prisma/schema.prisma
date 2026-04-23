@@ -54,6 +54,8 @@ model Port {
   id                String             @id @default(uuid())
   idPort            String             @unique
   nom               String
+  lat               Float?
+  lon               Float?
   // Relations
   meteo             Meteo?
   bathymetrie       Bathymetrie?
