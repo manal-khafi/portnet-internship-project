@@ -42,6 +42,12 @@ export default async function VesselPage({ params }: PageProps) {
       activites: latestEscale?.activitesStatus || 'NOT_DONE',
       manifeste: latestEscale?.manifesteStatus || 'NOT_DONE',
       bad: latestEscale?.badStatus || 'NOT_DONE',
+    },
+    technicalData: {
+      type: vessel.type,
+      pavillon: vessel.pavillon,
+      longueur: vessel.longueur,
+      consignataire: vessel.consignataire
     }
   };
 

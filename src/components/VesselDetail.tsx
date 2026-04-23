@@ -4,6 +4,13 @@ import { CheckCircle2, Clock, Circle } from 'lucide-react';
 import { Header } from './Header';
 import { usePathname, useRouter } from 'next/navigation';
 
+interface VesselTechnicalData {
+  type: string;
+  pavillon: string;
+  longueur: number | null;
+  consignataire: string;
+}
+
 interface VesselDetails {
   name: string;
   status: string;
@@ -17,24 +24,8 @@ interface VesselDetails {
     manifeste: 'NOT_DONE' | 'DOING' | 'DONE';
     bad: 'NOT_DONE' | 'DOING' | 'DONE';
   };
+  technicalData: VesselTechnicalData;
 }
-
-interface VesselDetailProps {
-  data: VesselDetails;
-}
-
-interface WorkflowStep {
-  id: string;
-  label: string;
-  status: 'completed' | 'current' | 'pending';
-}
-
-const vesselSpecs = [
-  { label: 'Type', value: 'PORTE-CONTENEURS' },
-  { label: 'Pavillon', value: 'PANAMA (PA)' },
-  { label: 'Longueur', value: '225.50 M' },
-  { label: 'Consignataire', value: 'M. MARITIME SERVICES' },
-];
 
 export function VesselDetail({ data }: VesselDetailProps) {
   const router = useRouter();
@@ -44,6 +35,13 @@ export function VesselDetail({ data }: VesselDetailProps) {
     const role = pathname.startsWith('/admin') ? 'admin' : 'agent';
     router.push(`/${role}/dashboard`);
   };
+
+  const vesselSpecs = [
+    { label: 'Type', value: data.technicalData.type || 'N/A' },
+    { label: 'Pavillon', value: data.technicalData.pavillon?.toUpperCase() || 'N/A' },
+    { label: 'Longueur', value: data.technicalData.longueur ? `${data.technicalData.longueur.toFixed(2)} M` : 'N/A' },
+    { label: 'Consignataire', value: data.technicalData.consignataire?.toUpperCase() || 'N/A' },
+  ];
 
   const mapStatus = (dbStatus: string): 'completed' | 'current' | 'pending' => {
     if (dbStatus === 'DONE') return 'completed';

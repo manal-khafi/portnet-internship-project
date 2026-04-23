@@ -1,43 +1,49 @@
 export async function fetchWeather(lat: number, lon: number) {
   const apiKey = process.env.OPENWEATHER_API_KEY;
+  
   if (!apiKey) {
-    console.error('OPENWEATHER_API_KEY is missing');
+    console.warn('Weather API key missing - skipping fetch');
     return null;
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  const timeoutId = setTimeout(() => controller.abort(), 4000); // Shorter timeout for better UX
 
   try {
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=fr`,
-      { signal: controller.signal }
+      { 
+        signal: controller.signal,
+        // Critical for Next.js: prevent it from retrying failed requests indefinitely
+        next: { revalidate: 1800 } 
+      }
     );
 
-    clearTimeout(timeoutId);
-
     if (!response.ok) {
-      console.error(`Weather API returned ${response.status}`);
+      console.error(`Weather API Error: ${response.status}`);
       return null;
     }
 
     const data = await response.json();
     
+    // Safety check for data structure
+    if (!data.weather || !data.weather[0]) return null;
+
     return [
-      { label: 'Météo', value: data.weather[0].description },
+      { label: 'Météo', value: data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1) },
       { label: 'Température', value: `${Math.round(data.main.temp)}°C` },
       { label: 'Vent', value: `${(data.wind.speed * 3.6).toFixed(1)} km/h` },
-      { label: 'Houle', value: '0.4 m' },
       { label: 'Visibilité', value: `${(data.visibility / 1000).toFixed(1)} km` },
       { label: 'Humidité', value: `${data.main.humidity}%` }
     ];
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') {
-      console.error('Weather fetch timed out');
+  } catch (error: any) {
+    // Check if it's a timeout or a network block
+    if (error.name === 'AbortError') {
+      console.error('Weather request timed out (Jorf Lasfar)');
     } else {
-      console.error('Failed to fetch weather data:', error);
+      console.error('Weather network error (likely blocked by firewall/VPN)');
     }
-    return null;
+    return null; 
   } finally {
     clearTimeout(timeoutId);
   }

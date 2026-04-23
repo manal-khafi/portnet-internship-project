@@ -1,7 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Ship, ChevronDown, ChevronRight, LogOut, ArrowLeft } from 'lucide-react';
+
+interface UserSession {
+  fullName: string;
+  department: string;
+  role: string;
+}
 
 interface HeaderProps {
   breadcrumbs?: { label: string; onClick?: () => void }[];
@@ -12,9 +18,42 @@ interface HeaderProps {
 
 export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps) {
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [user, setUser] = useState<UserSession | null>(null);
+
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          const data = await res.json();
+          // Logic: Map backend data to UserSession interface
+          // Fallback to .name if .fullName is missing; fallback to .role if .department is missing
+          setUser({
+            fullName: data.fullName || data.name || 'Utilisateur',
+            department: data.department || 'Consignataire',
+            role: data.role || 'agent'
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch session:', error);
+      }
+    }
+    fetchSession();
+  }, []);
+
+  const getInitials = (name: string) => {
+    if (!name || name === 'Utilisateur') return '--';
+    return name
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   return (
-    <nav className="bg-white border-b-2 border-gray-200 shadow-sm">
+    <nav className="bg-white border-b-2 border-gray-200 shadow-sm relative z-50">
       <div className="max-w-[1600px] mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
@@ -31,7 +70,7 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
                 <Ship className="w-6 h-6 text-white" strokeWidth={1.5} />
               </div>
               <div>
-                <h1 className="text-2xl text-[#332A7C] tracking-tight" style={{ fontFamily: 'var(--font-display)' }}>
+                <h1 className="text-2xl font-bold text-[#332A7C] tracking-tight">
                   PORTNET
                 </h1>
               </div>
@@ -39,7 +78,7 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
 
             {/* Breadcrumbs */}
             {breadcrumbs && breadcrumbs.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
+              <div className="flex items-center gap-2 text-sm ml-4">
                 {breadcrumbs.map((crumb, idx) => (
                   <div key={idx} className="flex items-center gap-2">
                     {crumb.onClick ? (
@@ -50,7 +89,7 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
                         {crumb.label}
                       </button>
                     ) : (
-                      <span className={idx === breadcrumbs.length - 1 ? "text-[#332A7C]" : "text-gray-500"} style={{ fontFamily: 'var(--font-display)' }}>
+                      <span className={idx === breadcrumbs.length - 1 ? "text-[#332A7C] font-semibold" : "text-gray-500"}>
                         {crumb.label}
                       </span>
                     )}
@@ -63,34 +102,45 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
             )}
           </div>
 
-          {/* User Profile */}
+          {/* User Profile Section */}
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
-              className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border-2 border-gray-200 hover:border-[#332A7C]/30 transition-all"
+              className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl border-2 border-gray-200 hover:border-[#332A7C]/30 transition-all shadow-sm"
             >
-              <div className="text-right">
-                <p className="text-sm text-[#332A7C]" style={{ fontFamily: 'var(--font-display)' }}>AGENT #61150</p>
-                <p className="text-xs text-gray-500">Consignataire Sud</p>
+              {user ? (
+                <div className="text-right flex flex-col justify-center">
+                  <p className="text-sm font-bold text-[#332A7C] uppercase leading-none mb-1">
+                    {user.fullName}
+                  </p>
+                  <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                    {user.role === 'admin' ? 'Administrateur' : user.department}
+                  </p>
+                </div>
+              ) : (
+                <div className="w-24 h-8 bg-gray-100 animate-pulse rounded-lg" />
+              )}
+              
+              <div className="w-10 h-10 rounded-full bg-[#332A7C] flex items-center justify-center shadow-md ml-1">
+                <span className="text-white text-sm font-bold">
+                  {user ? getInitials(user.fullName) : '--'}
+                </span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-[#332A7C] flex items-center justify-center">
-                <span className="text-white text-sm" style={{ fontFamily: 'var(--font-display)' }}>AM</span>
-              </div>
-              <ChevronDown className="w-4 h-4 text-gray-400" />
+              <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
             </button>
 
             {/* Dropdown Menu */}
             {showUserMenu && (
-              <div className="absolute right-0 top-full mt-2 w-56 bg-white border-2 border-gray-200 rounded-xl shadow-xl overflow-hidden animate-[fadeInDown_0.2s_ease-out] z-50">
+              <div className="absolute right-0 top-full mt-2 w-56 bg-white border-2 border-gray-200 rounded-xl shadow-xl overflow-hidden animate-[fadeInDown_0.2s_ease-out]">
                 <button
                   onClick={() => {
                     setShowUserMenu(false);
                     onLogout?.();
                   }}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-[#1A1A2E] hover:bg-gray-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-[#1A1A2E] hover:bg-red-50 hover:text-red-600 transition-colors group"
                 >
-                  <LogOut className="w-4 h-4 text-[#EF4444]" />
-                  <span>Déconnexion</span>
+                  <LogOut className="w-4 h-4 text-red-500 group-hover:scale-110 transition-transform" />
+                  <span className="font-medium">Déconnexion</span>
                 </button>
               </div>
             )}
@@ -98,7 +148,7 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
         </div>
       </div>
 
-      <style>{`
+      <style jsx>{`
         @keyframes fadeInDown {
           from {
             opacity: 0;
