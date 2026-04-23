@@ -7,6 +7,8 @@ interface Vessel {
   id: string;
   name: string;
   status: 'in-roads' | 'at-port' | 'at-quay';
+  eta: string;
+  cargoType: string;
   x: number;
   y: number;
 }
@@ -57,15 +59,15 @@ export const VesselSidebar = React.memo(({ selectedVessel, onGoToDetails }: Vess
           <div className="space-y-4 mb-6">
             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200">
               <span className="text-xs text-gray-500 block mb-1">ETA</span>
-              <span className="text-portnet-purple" style={{ fontFamily: 'var(--font-display)' }}>17 Avr, 14:30</span>
-            </div>
-            <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200">
-              <span className="text-xs text-gray-500 block mb-1">Affectation Quai</span>
-              <span className="text-portnet-purple" style={{ fontFamily: 'var(--font-display)' }}>Quai 4-B</span>
+              <span className="text-portnet-purple" style={{ fontFamily: 'var(--font-display)' }}>
+                {new Date(selectedVessel.eta).toLocaleString()}
+              </span>
             </div>
             <div className="p-4 bg-gray-50 rounded-2xl border border-gray-200">
               <span className="text-xs text-gray-500 block mb-1">Type de Cargo</span>
-              <span className="text-portnet-purple" style={{ fontFamily: 'var(--font-display)' }}>Conteneur</span>
+              <span className="text-portnet-purple" style={{ fontFamily: 'var(--font-display)' }}>
+                {selectedVessel.cargoType}
+              </span>
             </div>
           </div>
 

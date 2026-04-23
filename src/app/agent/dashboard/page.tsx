@@ -51,6 +51,8 @@ async function getDashboardData() {
       escale.statut === "RADE" ? "in-roads" : 
       escale.statut === "AU_PORT" ? "at-port" : 
       "at-quay",
+    eta: escale.eta,
+    cargoType: escale.navire.type,
     x: Math.random() * 80,
     y: Math.random() * 80,
   }));

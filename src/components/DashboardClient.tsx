@@ -13,6 +13,8 @@ interface Vessel {
   id: string;
   name: string;
   status: 'in-roads' | 'at-port' | 'at-quay';
+  eta: string;
+  cargoType: string;
   x: number;
   y: number;
 }
