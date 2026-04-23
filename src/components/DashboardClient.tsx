@@ -24,10 +24,9 @@ interface DashboardClientProps {
   vessels: any[]; // Changed to any to accommodate portId during filtering
   initialWeather: Record<string, any[]>;
   initialBathymetry: any;
-  stats: any[];
 }
 
-export function DashboardClient({ ports, vessels, initialWeather, initialBathymetry, stats }: DashboardClientProps) {
+export function DashboardClient({ ports, vessels, initialWeather, initialBathymetry }: DashboardClientProps) {
   const [selectedPort, setSelectedPort] = useState(
     ports.length > 0 ? ports[0].id : ""
   );
@@ -81,6 +80,20 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
       { label: 'Capacité', value: `${data.capacite} navires` }
     ];
   }, [selectedPort, initialBathymetry]);
+
+  const dynamicStats = useMemo(() => {
+    const enRade = filteredVessels.filter(v => v.status === 'in-roads').length;
+    const auPort = filteredVessels.filter(v => v.status === 'at-port').length;
+    const aQuai = filteredVessels.filter(v => v.status === 'at-quay').length;
+    const total = enRade + auPort + aQuai;
+
+    return [
+      { label: 'En Rade', value: String(enRade), color: 'var(--portnet-red)' },
+      { label: 'Au Port', value: String(auPort), color: 'var(--portnet-orange)' },
+      { label: 'À Quai', value: String(aQuai), color: 'var(--portnet-green)' },
+      { label: 'Total Général', value: String(total), color: 'var(--portnet-purple)' },
+    ];
+  }, [filteredVessels]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -162,7 +175,7 @@ export function DashboardClient({ ports, vessels, initialWeather, initialBathyme
 
         {/* Stats Footer */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-8">
-          {stats.map((stat, idx) => (
+          {dynamicStats.map((stat, idx) => (
             <div
               key={stat.label}
               className="bg-white rounded-3xl p-6 shadow-md border-2 border-gray-100 hover:border-portnet-purple/20 transition-all duration-300 animate-[fadeInUp_0.6s_ease-out]"
