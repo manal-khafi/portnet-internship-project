@@ -24,15 +24,17 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
     async function fetchSession() {
       try {
         const res = await fetch('/api/auth/me');
+        const data = await res.json();
+        console.log('Session Data:', data);
+        
         if (res.ok) {
-          const data = await res.json();
-          // Logic: Map backend data to UserSession interface
-          // Fallback to .name if .fullName is missing; fallback to .role if .department is missing
           setUser({
             fullName: data.fullName || data.name || 'Utilisateur',
             department: data.department || 'Consignataire',
             role: data.role || 'agent'
           });
+        } else {
+          console.error('Session API Error:', data.error);
         }
       } catch (error) {
         console.error('Failed to fetch session:', error);
@@ -42,14 +44,11 @@ export function Header({ breadcrumbs, showBack, onBack, onLogout }: HeaderProps)
   }, []);
 
   const getInitials = (name: string) => {
-    if (!name || name === 'Utilisateur') return '--';
-    return name
-      .split(' ')
-      .filter(Boolean)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
+    if (!name || name === 'Utilisateur' || name === '--') return 'UN';
+    const parts = name.trim().split(' ').filter(Boolean);
+    if (parts.length === 0) return 'UN';
+    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   return (
