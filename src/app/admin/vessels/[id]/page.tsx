@@ -1,28 +1,22 @@
 import { VesselDetail } from "@/components/VesselDetail";
-import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getServerSession } from "@/lib/auth-server";
+import { getNavireByIdForUser } from "@/lib/data-access";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function VesselPage({ params }: PageProps) {
+  const user = await getServerSession();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const { id } = await params;
   
-  const vessel = await prisma.navire.findUnique({
-    where: { id },
-    include: {
-      escales: {
-        orderBy: {
-          eta: 'desc'
-        },
-        take: 1,
-        include: {
-          port: true
-        }
-      }
-    }
-  });
+  const vessel = await getNavireByIdForUser(user, id);
 
   if (!vessel) {
     notFound();

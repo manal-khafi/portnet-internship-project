@@ -1,9 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { DashboardClient } from "@/components/DashboardClient";
 import { fetchWeather } from "@/lib/weather";
-
+import { getServerSession } from "@/lib/auth-server";
+import { getEscalesForUser } from "@/lib/data-access";
+import { redirect } from "next/navigation";
 
 async function getDashboardData() {
+  const user = await getServerSession();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   const portsFromDb = await prisma.port.findMany({
     orderBy: {
       nom: "asc",
@@ -39,13 +47,7 @@ async function getDashboardData() {
     },
   });
 
-
-  const escales = await prisma.escale.findMany({
-    include: {
-      navire: true,
-    },
-  });
-
+  const escales = await getEscalesForUser(user);
 
   const vessels = escales.map((escale) => ({
     id: escale.navire.id,
@@ -55,7 +57,7 @@ async function getDashboardData() {
       escale.statut === "RADE" ? "in-roads" :
         escale.statut === "AU_PORT" ? "at-port" :
           "at-quay",
-    eta: escale.eta,
+    eta: escale.eta.toISOString(),
     cargoType: escale.navire.type,
     x: Math.random() * 80,
     y: Math.random() * 80,
